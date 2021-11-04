@@ -17,6 +17,19 @@ const pool = mysql.createPool({
     database        :   'cs361_lannersn'
 });
 
+function errorCheck(err, result, res, response) {
+    if(err) {
+        console.log(err);
+        console.log(result);
+        response.status = 500;
+        response.body = "Something went wrong!";
+        response.error = err.code;
+        response.message = err.sqlMessage;
+
+        res.send(response);
+    }
+}
+
 // CREATE TABLE
 
 
@@ -24,7 +37,42 @@ const pool = mysql.createPool({
 
 
 // ADD ITEMS
+app.post('/', function(req, res, next) {
+    let sql = 'INSERT INTO ' + req.body.table + ' (';
+    let columns = Object.keys(req.body.columns);
+    let data = [];
+    let response = {};
 
+    // form query string
+    for (let i in columns) {
+        sql = sql.concat(columns[i], ', ');
+    }
+    sql = sql.slice(0,-2);
+    sql = sql.concat(') VALUES (')
+    for (let h = 0; h < columns.length; h++) {
+        sql = sql.concat('?,')
+    }
+    sql = sql.slice(0, -1);
+    sql = sql.concat(');');
+
+    // create data
+    for (let j = 0; j < columns.length; j++) {
+        data.push(req.body.columns[columns[j]]);
+    }
+
+    // make query
+    pool.query(sql, data, function(err, result) {
+        errorCheck(err, result, res, response);
+        console.log(result);
+        if (result) {
+            response.status = 201;
+            response.body = "INSERT was succesful!";
+            response.newID = result.insertId;
+            res.send(response);
+        }
+    })
+
+})
 
 // UPDATE ITEMS
 
@@ -48,5 +96,5 @@ app.use(function(req, res, next){
 });
 
 app.listen(app.get('port'), function(){
-    console.log('Express started on flip3.engr.oregonstate.edu:' + app.get('port') + '; press Ctrl-C to terminate.');
+    console.log('Express started on localhost:' + app.get('port') + '; press Ctrl-C to terminate.');
 })
