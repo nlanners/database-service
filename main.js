@@ -46,7 +46,6 @@ app.get('/:table', (req, res, next) => {
     // make query
     pool.query(sql, (err, rows, fields) => {
         errorCheck(err, res, response);
-        console.log(rows);
         for (let i in rows) {
             response.push(rows[i])
         }
@@ -134,7 +133,6 @@ app.put('/:table/:id', function(req, res, next) {
     pool.query(sql, data, function(err, result) {
         errorCheck(err, res, response);
         if (result) {
-            console.log(result);
             response.status = 201;
             response.body = "UPDATE was successful!";
             response.message = result.message;
